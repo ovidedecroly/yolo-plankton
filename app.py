@@ -3,9 +3,18 @@ import PIL
 
 import streamlit as st
 from ultralytics import YOLO
+import pandas as pd
+import os
 
 # Replace the relative path to your weight file
 model_path = 'weights/best.pt'
+
+# Initialize or load the log
+log_file = 'detection_log.csv'
+if os.path.exists(log_file):
+    detection_log = pd.read_csv(log_file)
+else:
+    detection_log = pd.DataFrame(columns=['Image Name', 'Confidence'])
 
 # Setting page layout
 st.set_page_config(
@@ -52,20 +61,29 @@ except Exception as ex:
         f"Unable to load model. Check the specified path: {model_path}")
     st.error(ex)
 
-if st.sidebar.button('Detect Objects'):
-    res = model.predict(uploaded_image,
-                        conf=confidence
-                        )
+# Detecting objects when button is clicked
+if st.sidebar.button('Detect Objects') and source_img:
+    res = model.predict(uploaded_image, conf=confidence)
     boxes = res[0].boxes
     res_plotted = res[0].plot()[:, :, ::-1]
+    
     with col2:
-        st.image(res_plotted,
-                 caption='Detected Image',
-                 use_column_width=True
-                 )
-        try:
-            with st.expander("Detection Results"):
-                for box in boxes:
-                    st.write(box.xywh)
-        except Exception as ex:
-            st.write("No image is uploaded yet!")
+        st.image(res_plotted, caption='Detected Image', use_column_width=True)
+        
+        with st.expander("Detection Results"):
+            for box in boxes:
+                st.write(box.xywh)
+    
+    # Log the detection details
+    image_name = source_img.name
+    new_log = pd.DataFrame([[image_name, confidence]], columns=['Image Name', 'Confidence'])
+    detection_log = pd.concat([detection_log, new_log], ignore_index=True)
+    detection_log.to_csv(log_file, index=False)
+    
+    st.sidebar.write("Detection log updated.")
+else:
+    st.write("No image uploaded yet or Detect Objects button not clicked.")
+
+# Display the log
+if st.sidebar.checkbox('Show Detection Log'):
+    st.sidebar.write(detection_log)
