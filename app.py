@@ -5,6 +5,7 @@ import streamlit as st
 from ultralytics import YOLO
 import pandas as pd
 import os
+from io import StringIO
 
 # Replace the relative path to your weight file
 model_path = 'weights/best.pt'
@@ -87,3 +88,16 @@ else:
 # Display the log
 if st.sidebar.checkbox('Show Detection Log'):
     st.sidebar.write(detection_log)
+    
+    # Create a CSV buffer
+    csv = StringIO()
+    detection_log.to_csv(csv, index=False)
+    csv.seek(0)
+    
+    # Download button
+    st.sidebar.download_button(
+        label="Download Detection Log",
+        data=csv.getvalue(),
+        file_name='detection_log.csv',
+        mime='text/csv',
+    )
