@@ -77,8 +77,10 @@ if st.sidebar.button('Detect Objects') and source_img:
     
     # Log the detection details
     image_name = source_img.name
-    new_log = pd.DataFrame([[image_name, confidence]], columns=['Image Name', 'Confidence'])
-    detection_log = pd.concat([detection_log, new_log], ignore_index=True)
+    for box in boxes:
+        actual_confidence = box.conf.item()  # Extract the confidence score for each detected object
+        new_log = pd.DataFrame([[image_name, actual_confidence]], columns=['Image Name', 'Confidence'])
+        detection_log = pd.concat([detection_log, new_log], ignore_index=True)
     detection_log.to_csv(log_file, index=False)
     
     st.sidebar.write("Detection log updated.")
