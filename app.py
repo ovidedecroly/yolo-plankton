@@ -8,7 +8,7 @@ import os
 from io import StringIO
 
 # Replace the relative path to your weight file
-model_path = 'weights/best.pt'
+model_path = 'weights/best-plankton.pt'
 
 # Initialize or load the log
 log_file = 'detection_log.csv'
